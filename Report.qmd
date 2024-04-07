@@ -1,0 +1,127 @@
+---
+title: "Global Development Insights" 
+subtitle: "Exploring the Relationship Between Population, Life Expectancy and Math Prociency in Primary Education throughout the years"
+author: "Rian Kearns"
+date: 04-07-2024
+format:
+  html:
+    theme: minty
+    toc: true
+
+
+
+
+backgroundcolor: lightyellow
+execute: 
+  echo: false
+  warning: false
+  message: false 
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+# libraries
+library(tidyverse)
+library(plotly)
+
+#data
+Metadata <- read_csv("Metadata.csv")
+Indicator_Unicef <- read_csv("Indicator Unicef.csv")
+
+#transformations
+data_join <- Metadata %>%
+full_join(Indicator_Unicef, by = c("country"= "country", "year" = "time_period"))
+```
+## Introduction
+Welcome to ***Global Development Insights: Exploring the Relationship Between Population, Life Expectancy and Math Proficiency in Primary Education Throughout the Years*** This dashboard offers a thorough analysis of important *global indicators*, illuminating the complex relationships between **wealth, health and education**. We uncover trends, disparities, and opportunities propelling global through visualisations. 
+The visualisations I will explore are:
+
+1. World Map
+2. Time Series
+3. Scatter Plot
+4. Bar Chart
+
+### Map Visualisation
+```{r}
+#| fig-cap: "This detailed map gives a snapshot of the **percentage proportion of post primary school students that achieve a minimum proficiency level in maths in 2019**. The countries such as *Russia with the lighter blue colour demonstrate a higher level of proficiency in mathematics whereas *Chad, a developing country is in the darker blue with a much lower figure. There is clearly an **unfair distribution of quality education** in first world countries such as Russia and third world countries like Chad."
+#|
+map_world <- map_data("world")
+data_join_2019 <- data_join %>% 
+  filter(year == 2019)
+
+map_data_join_2019 <- full_join(data_join_2019, map_world, by = c("country" = "region"))
+ggplot(map_data_join_2019) +
+  aes(x = long, y = lat, group = group, fill = obs_value) +
+  geom_polygon() +
+  labs(
+    title = "Primary School Students Achieving Min. Proficiency Level in Maths 2019",
+    x= "",
+    y="",
+    fill = "Proportion of Students %")
+
+
+```
+
+
+### Time Series Visualisation
+```{r}
+#| fig-cap: "The time series diagram compares ***life expectancies with Russia and Chad overtime***, revealing stark differences. Russia shows **gradual and stable increases** in life expectancy, reflecting its *developed healthcare system and socio- economic stability*. Chad experiences increases, but the life expectancy levels are a lot lower than Russia's due to challenges like *poverty, political instability, and limited healthcare access*. Russia's success underscores the importance of sustained investments in **healthcare and social welfare**, while Chad could benefit from targeted interventions to improve healthcare infrastructure and address **socio-economic disparities**."
+#| 
+filtered_data <- data_join %>%
+  filter(country %in% c("Russia", "Chad"))
+
+ggplot(filtered_data, aes(x = year, y = life_expectancy_at_birth_total, group = country, color = country)) +
+  geom_line() +
+  labs(title = "Life Expectancy Trends for Chad and Russia",
+       x = "Year",
+       y = "Population") +
+  theme_minimal()
+```
+
+
+### Scatter Plot Visualisation
+```{r}
+#| fig-cap: "The scatter plot indicates a ***positive correlation between math proficiency at the end of primary education and life expectancy at birth***. As the proportion of students achieving at least a minimum proficiency level in mathematics increases, there is a **general trend of increasing life expectancy**. The density of data points is higher at the mid-range of math proficiency, suggesting that for many observations, moderate levels of math proficiency *correlate* with varied life expectancy outcomes. The **trend line**, while initially **steep**, begins to **plateau** as math proficiency approaches higher levels, implying that the impact of math proficiency on life expectancy may have **diminishing returns** beyond a certain point. This pattern suggests that while educational outcomes in math are associated with better life outcomes as reflected in life expectancy, other factors likely contribute to life expectancy as well, particularly at higher levels of math proficiency."
+#| 
+
+ggplot(data_join) +
+aes(obs_value, life_expectancy_at_birth_total) + 
+  geom_point(alpha=0.2, color = "red") +
+  labs(x = "Proportion of students at the end of primary achieving at least a minimum proficiency level in mathematics", 
+       y = "Life Expectancy at Birth", 
+       title = "Life Expectancy and Math Proficiency Relationship") +
+theme_classic() +
+geom_smooth(color = "blue")  + 
+ theme(text = element_text(family = "serif"))
+```
+
+
+### Bar Chart Visualisation
+```{r}
+#| fig-cap: "The bar chart displays a **stark contrast in population sizes between Chad and Russia as of 2019**. The substantial difference, with Russia's population being much larger than Chad's, could be attributed to a variety of factors. Russia, being the *largest country in the world by land area*, has a vast expanse of habitable land which can support a large population. On the other hand, Chad, while sizable, has a harsher climate and more limited agricultural land, which could constrain its population growth. Additionally, differences in *historical growth rates, economic development, public health, fertility rates, and immigration patterns all influence population size*. Russia's development and longer life expectancy also contribute to its **larger population** when compared to Chad, where the harsher environment and possibly lower economic development could lead to a **smaller population size**."
+data_join_2019 <- data_join %>%
+#|
+filter(year == 2019, country %in% c("Russia", "Chad"))
+
+
+data_join_2019 <- data_join_2019 %>%
+  group_by(country, year)
+
+ggplot(data_join_2019, aes(x = reorder(country, population_total), y = population_total, fill = country)) +
+  geom_col() +
+  labs(x = "",
+       y = "Population",
+       fill = "Country",
+       title = "Population Comparison of Russia and Chad in 2019") +
+  
+
+  theme_classic() +
+  theme(
+    text = element_text(family = "serif")
+  )
+options(scipen = 999)
+```
+## Conclusion
+***Global Development Insights*** provides a thorough examination of important metrics, such as **life expectancy, population, and elementary school arithmetic competency**. This quarto report offers insightful information about the complex **global relationships** between **socioeconomic development, public health, and educational outcomes** through dynamic visualisations and analysis. Through a comprehensive grasp of these interrelated elements, **decision-makers, scholars, and interest parties** can propel advancements towards the objectives of sustainable development and enhance the welfare of people worldwide. 
